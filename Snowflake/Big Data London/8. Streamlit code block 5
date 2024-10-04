@@ -1,1 +1,43 @@
+# ****************************************************************************
+# ****************************************************************************
+# CODE BLOCK 5
+# ****************************************************************************
+# ****************************************************************************
+
+def calc_times(start_time, first_token_time, end_time, token_count):
+    #
+    # Calculate the times for the execution steps.
+    #
+
+    # Calculate the correct durations
+    time_to_first_token = first_token_time - start_time  # Time to the first token
+    total_duration = end_time - start_time  # Total time to generate all tokens
+    time_for_remaining_tokens = total_duration - time_to_first_token  # Time for the remaining tokens
+    
+    # Calculate tokens per second rate
+    tokens_per_second = token_count / total_duration if total_duration > 0 else 1
+    
+    # Ensure that time to first token is realistically non-zero
+    if time_to_first_token < 0.01:  # Adjust the threshold as needed
+        time_to_first_token = total_duration / 2  # A rough estimate if it's too small
+
+    return time_to_first_token, time_for_remaining_tokens, tokens_per_second
+
+def run_prompt(question):
+    #
+    # Run the prompt against Cortex.
+    #
+    formatted_prompt = build_prompt (question)
+    cmd = f"""
+             select SNOWFLAKE.CORTEX.COMPLETE(?,?) as response
+           """
+    token_count = get_model_token_count(question)
+    start_time = time.time()
+    sql_resp = session.sql(cmd, params=[st.session_state.model_name, formatted_prompt])
+    first_token_time = time.time() 
+    answer_df = sql_resp.collect()
+    end_time = time.time()
+    time_to_first_token, time_for_remaining_tokens, tokens_per_second = calc_times(start_time, first_token_time, end_time, token_count)
+    
+    return answer_df, time_to_first_token, time_for_remaining_tokens, tokens_per_second, token_count
 
