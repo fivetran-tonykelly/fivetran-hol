@@ -1,0 +1,21 @@
+# ****************************************************************************
+# ****************************************************************************
+# CODE BLOCK 4
+# ****************************************************************************
+# ****************************************************************************
+
+def get_model_token_count(question):
+    #
+    # Calculate and return the token count for the model and question used.
+    #
+    try:
+        token_count_sql = f"""
+          select SNOWFLAKE.CORTEX.COUNT_TOKENS('{st.session_state.model_name}', '{question}') as token_count;
+          """
+        token_count_data = session.sql(token_count_sql).collect()
+        token_count = token_count_data[0][0]
+        
+        return token_count
+    except Exception as e:
+        token_count = -1
+
