@@ -1,2 +1,2 @@
 # fivetran-hol
-Git Repository for Fivetran <> Snowflake Hands on Labs
+Git Repository for Fivetran Hands on Labs
