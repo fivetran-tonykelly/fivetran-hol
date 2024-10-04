@@ -1,0 +1,49 @@
+# ****************************************************************************
+# ****************************************************************************
+# CODE BLOCK 6
+# ****************************************************************************
+# ****************************************************************************
+
+def main():
+    #
+    # Controls the flow of the app.
+    #
+    question = build_layout()
+    if question:
+        with st.spinner("Thinking..."):
+            try:
+                # Run the prompt.
+                data, time_to_first_token, time_for_remaining_tokens, tokens_per_second, token_count = run_prompt(question)
+                response = data[0][0]
+                # Conditionally append the token count line based on the checkbox
+                if st.session_state.show_token_count:
+                    st.session_state.conversation_state.append(
+                        (f"🔢 Token Count for '{st.session_state.model_name}':", 
+                         f"""<span style='color:#808080;'>{token_count} tokens • {tokens_per_second:.2f} tokens/s • 
+                         {time_to_first_token:.2f}s to first token + {time_for_remaining_tokens:.2f}s</span>""")
+                    )
+                # Append the new results.
+                st.session_state.conversation_state.append((f"London Attraction Visit Assistant ({st.session_state.model_name}):", response))
+                st.session_state.conversation_state.append(("You:", question))
+            except Exception as e:
+                st.warning(f"An error occurred while processing your question: {e}")
+        
+        # Display the results in a stacked format.
+        if st.session_state.conversation_state:
+            for i in reversed(range(len(st.session_state.conversation_state))):
+                label, message = st.session_state.conversation_state[i]
+                if 'Token Count' in label:
+                    # Display the token count in a specific format
+                    st.markdown(f"**{label}** {message}", unsafe_allow_html=True)
+                elif i % 2 == 0:
+                    st.write(f":uk:**{label}** {message}")
+                else:
+                    st.write(f":question:**{label}** {message}")
+
+if __name__ == "__main__":
+    #
+    # App startup method.
+    #
+    session = get_active_session()
+    
+    main()
