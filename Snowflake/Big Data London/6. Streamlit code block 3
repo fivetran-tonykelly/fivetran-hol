@@ -1,0 +1,50 @@
+# ****************************************************************************
+# CODE BLOCK 3
+# ****************************************************************************
+# ****************************************************************************
+
+def build_prompt (question):
+    #
+    # Format the prompt based on if the user chooses to use the RAG option or not.
+    #
+
+    # Build the RAG prompt if the user chooses.
+    if st.session_state.dataset_context:
+        context_cmd = f"""
+          with context_cte as
+          (select activity_information as activity_chunk, vector_cosine_similarity(activity_embedding,
+                snowflake.cortex.embed_text_768('e5-base-v2', ?)) as v_sim
+          from single_string_travel_review_vector
+          order by v_sim desc
+          limit ?)
+          select activity_chunk from context_cte 
+          """
+        chunk_limit = st.session_state.num_retrieved_chunks
+        context_df = session.sql(context_cmd, params=[question, chunk_limit]).to_pandas()
+        context_len = len(context_df) -1
+
+        rag_context = ""
+        for i in range (0, context_len):
+            rag_context += context_df._get_value(i, 'ACTIVITY_CHUNK')
+        rag_context = rag_context.replace("'", "''")
+
+        new_prompt = f"""
+          'Act as a London Attraction visit expert for visitors to the London area who want an incredible visit and 
+          tasting experience. You are a personal visit assistant named Snowflake London Attraction Visit Assistant. Provide 
+          the most accurate information on London Attractions based on activity_information from 
+          SINGLE_STRING_TRAVEL_REVIEW_VECTOR table. Only provide information if there is an exact match in the given Context.
+          Context: {rag_context}
+          Question: {question} 
+          Answer: '
+          """
+    else:
+        # Build the generic version of the prompt without RAG.
+        new_prompt = f"""
+          'Act as a London Attraction visit expert for visitors to the London area who want an incredible visit and 
+          tasting experience. You are a personal visit assistant named Snowflake London Attraction Visit Assistant. Provide 
+          the most accurate information on London Attractions.
+          Question: {question} 
+          Answer: '
+          """
+    
+    return new_prompt
