@@ -1,0 +1,27 @@
+#
+# Fivetran Snowflake Cortex Lab
+# Build a London Attraction Assistant Chatbot
+#
+
+import streamlit as st
+from snowflake.snowpark.context import get_active_session
+import pandas as pd
+import re
+import time
+
+# Change this list as needed to add/remove model capabilities.
+MODELS = [
+    "snowflake-arctic",
+    "reka-flash",
+    "llama3-70b",
+    "llama2-70b-chat",
+    "gemma-7b",
+    "mistral-large",
+    "mixtral-8x7b",
+    "llama3-8b",
+    "mistral-7b"
+]
+
+# Change this value to control the number of tokens you allow the user to change to control RAG context.
+CHUNK_NUMBER = [5,6,7,8,9,10,12,16,20]
+
